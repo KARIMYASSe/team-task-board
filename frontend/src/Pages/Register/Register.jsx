@@ -1,9 +1,18 @@
 import axios from "axios";
 import { useForm } from "react-hook-form";
 import { useNavigate } from "react-router-dom";
+import { joiResolver } from "@hookform/resolvers/joi";
+import { registerSchema } from "../../validation/authValidation";
 
 export default function Register() {
-  const { register, handleSubmit } = useForm();
+  const {
+    register,
+    handleSubmit,
+    formState: { errors },
+  } = useForm({
+    resolver: joiResolver(registerSchema),
+    mode: "onTouched",
+  });
   let nav = useNavigate();
 
   async function handleRegister(value) {
@@ -20,14 +29,12 @@ export default function Register() {
   return (
     <main className="min-h-screen bg-[#06091a] px-4 py-8 text-white sm:px-6 lg:px-8">
       <div className="mx-auto grid min-h-[calc(100vh-64px)] max-w-6xl overflow-hidden rounded-3xl border border-slate-800 bg-[#0b1023] shadow-2xl shadow-violet-950/30 lg:grid-cols-2">
-        
         <div className="relative hidden overflow-hidden bg-gradient-to-br from-violet-700 via-indigo-900 to-[#080c20] p-12 lg:flex lg:flex-col lg:justify-between">
           {/* Background Decorations */}
           <div className="absolute -left-20 -top-20 h-72 w-72 rounded-full bg-violet-400/20 blur-3xl" />
 
           <div className="absolute -bottom-24 -right-20 h-80 w-80 rounded-full bg-indigo-500/20 blur-3xl" />
 
-         
           <div className="relative z-10 flex items-center gap-3">
             <div className="flex h-11 w-11 items-center justify-center rounded-xl bg-white/15 text-xl font-bold backdrop-blur">
               ✓
@@ -38,7 +45,6 @@ export default function Register() {
             </h2>
           </div>
 
-          
           <div className="relative z-10">
             <p className="inline-block rounded-full border border-violet-300/20 bg-white/5 px-4 py-2 text-sm text-violet-200">
               Organize. Collaborate. Achieve.
@@ -107,10 +113,8 @@ export default function Register() {
           </p>
         </div>
 
-        
         <div className="flex items-center justify-center p-6 sm:p-10 lg:p-12">
           <div className="w-full max-w-md">
-            
             <div className="mb-9 flex items-center gap-3 lg:hidden">
               <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-violet-600 font-bold">
                 ✓
@@ -121,7 +125,6 @@ export default function Register() {
               </h2>
             </div>
 
-          
             <div>
               <p className="text-sm font-semibold uppercase tracking-[3px] text-violet-400">
                 Create Account
@@ -138,7 +141,6 @@ export default function Register() {
               onSubmit={handleSubmit(handleRegister)}
               className="mt-8 space-y-5"
             >
-              
               <div className="grid gap-5 sm:grid-cols-2">
                 <div>
                   <label
@@ -155,6 +157,11 @@ export default function Register() {
                     className="w-full rounded-xl border border-slate-700 bg-[#11172a] px-4 py-3 text-sm text-white outline-none transition placeholder:text-slate-600 hover:border-slate-600 focus:border-violet-500 focus:ring-4 focus:ring-violet-500/10"
                     placeholder="Karim"
                   />
+                  {errors.firstName && (
+                    <p className="mt-2 text-sm text-red-400">
+                      {errors.firstName.message}
+                    </p>
+                  )}
                 </div>
 
                 <div>
@@ -172,6 +179,11 @@ export default function Register() {
                     className="w-full rounded-xl border border-slate-700 bg-[#11172a] px-4 py-3 text-sm text-white outline-none transition placeholder:text-slate-600 hover:border-slate-600 focus:border-violet-500 focus:ring-4 focus:ring-violet-500/10"
                     placeholder="Yasser"
                   />
+                  {errors.lastName && (
+                    <p className="mt-2 text-sm text-red-400">
+                      {errors.lastName.message}
+                    </p>
+                  )}
                 </div>
               </div>
 
@@ -190,6 +202,11 @@ export default function Register() {
                   className="w-full rounded-xl border border-slate-700 bg-[#11172a] px-4 py-3 text-sm text-white outline-none transition placeholder:text-slate-600 hover:border-slate-600 focus:border-violet-500 focus:ring-4 focus:ring-violet-500/10"
                   placeholder="karim@example.com"
                 />
+                {errors.email && (
+                  <p className="mt-2 text-sm text-red-400">
+                    {errors.email.message}
+                  </p>
+                )}
               </div>
 
               <div>
@@ -207,6 +224,11 @@ export default function Register() {
                   className="w-full rounded-xl border border-slate-700 bg-[#11172a] px-4 py-3 text-sm text-white outline-none transition placeholder:text-slate-600 hover:border-slate-600 focus:border-violet-500 focus:ring-4 focus:ring-violet-500/10"
                   placeholder="Enter your password"
                 />
+                {errors.password && (
+                  <p className="mt-2 text-sm text-red-400">
+                    {errors.password.message}
+                  </p>
+                )}
               </div>
 
               <div>
@@ -224,6 +246,11 @@ export default function Register() {
                   className="w-full rounded-xl border border-slate-700 bg-[#11172a] px-4 py-3 text-sm text-white outline-none transition placeholder:text-slate-600 hover:border-slate-600 focus:border-violet-500 focus:ring-4 focus:ring-violet-500/10"
                   placeholder="Enter your password again"
                 />
+                {errors.confirmPassword && (
+                  <p className="mt-2 text-sm text-red-400">
+                    {errors.confirmPassword.message}
+                  </p>
+                )}
               </div>
 
               {/* Submit Button */}

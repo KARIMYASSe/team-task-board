@@ -11,6 +11,8 @@ import ProjectDetails from "./Pages/ProjectDetails/ProjectDetails";
 import LayoutTwo from "./components/Layout/LayoutTwo";
 import CreateProject from "./Pages/CreateProject/CreateProject";
 import Projects from "./Pages/Projects/Projects";
+import ProtectedRoute from "./components/ProtectedRoute/ProtectedRoute";
+import AdminDashboard from "./Pages/AdminDashboard/AdminDashboard";
 
 export default function App() {
   const Routes = createBrowserRouter([
@@ -34,24 +36,33 @@ export default function App() {
     },
 
     {
-      element: <LayoutTwo />,
+      element: <ProtectedRoute />,
       children: [
         {
-          path: "dashboard",
-          element: <DashBoard />,
+          element: <LayoutTwo />,
+          children: [
+            {
+              path: "dashboard",
+              element: <DashBoard />,
+            },
+            {
+              path: "projects",
+              element: <Projects />,
+            },
+            {
+              path: "projectDetails/:id",
+              element: <ProjectDetails />,
+            },
+            {
+              path: "createProject",
+              element: <CreateProject />,
+            },
+            {
+              path: "admin",
+              element: <AdminDashboard />,
+            },
+          ],
         },
-        {
-          path: "projectDetails/:id",
-          element: <ProjectDetails />,
-        },
-        {
-          path: "createProject",
-          element: <CreateProject />,
-        },
-        {
-  path: "projects",
-  element: <Projects />,
-},
       ],
     },
 

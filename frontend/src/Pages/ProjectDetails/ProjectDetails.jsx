@@ -3,6 +3,7 @@ import { useContext, useEffect, useState } from "react";
 import { useForm } from "react-hook-form";
 import { useNavigate, useParams } from "react-router-dom";
 import { UserContext } from "../../context/AuthContext";
+import Tasks from "../Tasks/Tasks";
 
 export default function ProjectDetails() {
   const { id } = useParams();
@@ -510,35 +511,11 @@ export default function ProjectDetails() {
           )}
         </section>
 
-        {/* Tasks Placeholder */}
-        <section className="mt-8 rounded-3xl border border-slate-800 bg-[#0c1228] p-6 sm:p-8">
-          <div className="flex flex-col justify-between gap-4 sm:flex-row sm:items-center">
-            <div>
-              <h2 className="text-2xl font-bold">Project Tasks</h2>
-
-              <p className="mt-1 text-sm text-slate-400">
-                Tasks belonging to this project will appear here.
-              </p>
-            </div>
-
-            <button
-              type="button"
-              className="rounded-xl bg-violet-600 px-5 py-3 text-sm font-semibold transition hover:bg-violet-500"
-            >
-              + Create Task
-            </button>
-          </div>
-
-          <div className="mt-6 rounded-2xl border border-dashed border-slate-700 p-10 text-center">
-            <p className="text-4xl">✅</p>
-
-            <p className="mt-4 font-semibold">Tasks section</p>
-
-            <p className="mt-2 text-sm text-slate-500">
-              We will connect it after finishing the project functions.
-            </p>
-          </div>
-        </section>
+        <Tasks
+          projectId={id}
+          members={members}
+          canManageProject={canManageProject}
+        />
       </div>
     </main>
   );

@@ -3,10 +3,19 @@ import { useContext } from "react";
 import { useForm } from "react-hook-form";
 import { useNavigate } from "react-router-dom";
 import { UserContext } from "../../context/AuthContext";
+import { joiResolver } from "@hookform/resolvers/joi";
+import { loginSchema } from "../../validation/authValidation";
 
 export default function Login() {
-    let {getUser} = useContext(UserContext)
-  const { register, handleSubmit } = useForm();
+  let { getUser } = useContext(UserContext);
+  const {
+    register,
+    handleSubmit,
+    formState: { errors },
+  } = useForm({
+    resolver: joiResolver(loginSchema),
+    mode: "onTouched",
+  });
   const nav = useNavigate();
 
   async function handleLogin(value) {
@@ -20,9 +29,9 @@ export default function Login() {
 
     if (status === 201) {
       localStorage.setItem("token", data.accessToken);
-     await getUser()
+      await getUser();
       nav("/dashboard");
-    }   
+    }
   }
 
   return (
@@ -172,6 +181,11 @@ export default function Login() {
                   className="w-full rounded-xl border border-slate-700 bg-[#11172a] px-4 py-3 text-sm text-white outline-none transition placeholder:text-slate-600 hover:border-slate-600 focus:border-violet-500 focus:ring-4 focus:ring-violet-500/10"
                   placeholder="karim@example.com"
                 />
+                {errors.email && (
+                  <p className="mt-2 text-sm text-red-400">
+                    {errors.email.message}
+                  </p>
+                )}
               </div>
 
               {/* Password */}
@@ -199,6 +213,11 @@ export default function Login() {
                   className="w-full rounded-xl border border-slate-700 bg-[#11172a] px-4 py-3 text-sm text-white outline-none transition placeholder:text-slate-600 hover:border-slate-600 focus:border-violet-500 focus:ring-4 focus:ring-violet-500/10"
                   placeholder="Enter your password"
                 />
+                {errors.password && (
+                  <p className="mt-2 text-sm text-red-400">
+                    {errors.password.message}
+                  </p>
+                )}
               </div>
 
               {/* Remember Me */}

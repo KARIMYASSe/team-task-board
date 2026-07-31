@@ -34,6 +34,11 @@ export function UserContextProvider({ children }) {
     }
   }
 
+  function logout() {
+  localStorage.removeItem("token");
+  setUser(null);
+}
+
   useEffect(() => {
     getUser();
   }, []);
@@ -44,6 +49,7 @@ export function UserContextProvider({ children }) {
         user,
         getUser,
         loading,
+        logout
       }}
     >
       {children}
