@@ -46,6 +46,10 @@ export default function App() {
               element: <DashBoard />,
             },
             {
+              path: "admin",
+              element: <AdminDashboard />,
+            },
+            {
               path: "projects",
               element: <Projects />,
             },
@@ -56,10 +60,6 @@ export default function App() {
             {
               path: "createProject",
               element: <CreateProject />,
-            },
-            {
-              path: "admin",
-              element: <AdminDashboard />,
             },
           ],
         },
