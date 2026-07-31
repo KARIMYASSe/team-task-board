@@ -2,6 +2,7 @@ import {
   Body,
   Controller,
   Get,
+  HttpCode,
   Post,
   Req,
   UseGuards,
@@ -20,6 +21,7 @@ export class UsersController {
   constructor(private readonly _UsersService: UsersService) {}
 
   @Post('signUp')
+  @HttpCode(201)
   @UsePipes(new ValidationPipe())
   async signUp(@Body() body: signUpDTO): Promise<userDocument> {
     return this._UsersService.signUp(body);
