@@ -140,7 +140,7 @@ export class ProjectsService {
     req: Request,
   ): Promise<projectDocument> {
     const currentUser = req['user'];
-    const { userId } = body;
+    const email = body.email.trim().toLowerCase();
 
     if (!Types.ObjectId.isValid(projectId)) {
       throw new BadRequestException('Invalid project id');
@@ -164,13 +164,14 @@ export class ProjectsService {
       );
     }
 
-    const member = await this._userRepositoryService.findById(
-      new Types.ObjectId(userId),
-    );
+    const member = await this._userRepositoryService.findOne({
+      email,
+    });
 
     if (!member) {
       throw new NotFoundException('User not found');
     }
+    const userId = member._id.toString();
 
     const alreadyMember = project.members.some(
       (memberId) => memberId.toString() === userId,
@@ -205,11 +206,17 @@ export class ProjectsService {
       throw new BadRequestException('Invalid project id');
     }
 
+    if (!Types.ObjectId.isValid(projectId)) {
+      throw new BadRequestException('Invalid project id');
+    }
+
     if (!Types.ObjectId.isValid(userId)) {
       throw new BadRequestException('Invalid user id');
     }
 
-    const project = await this._projectRepositoryService.findById(new Types.ObjectId(projectId));
+    const project = await this._projectRepositoryService.findById(
+      new Types.ObjectId(projectId),
+    );
 
     if (!project) {
       throw new NotFoundException('Project not found');
@@ -218,7 +225,6 @@ export class ProjectsService {
     const isAdmin = currentUser.role === 'admin';
 
     const isOwner = project.owner.toString() === currentUser._id.toString();
-
     if (!isAdmin && !isOwner) {
       throw new ForbiddenException(
         'Only project owner or admin can remove members',

@@ -10,6 +10,7 @@ import { ProjectContextProvider } from "./context/ProjectContext";
 import ProjectDetails from "./Pages/ProjectDetails/ProjectDetails";
 import LayoutTwo from "./components/Layout/LayoutTwo";
 import CreateProject from "./Pages/CreateProject/CreateProject";
+import Projects from "./Pages/Projects/Projects";
 
 export default function App() {
   const Routes = createBrowserRouter([
@@ -47,6 +48,10 @@ export default function App() {
           path: "createProject",
           element: <CreateProject />,
         },
+        {
+  path: "projects",
+  element: <Projects />,
+},
       ],
     },
 

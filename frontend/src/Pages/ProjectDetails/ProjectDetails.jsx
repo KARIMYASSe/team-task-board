@@ -1,14 +1,20 @@
 import axios from "axios";
-import { useEffect, useState } from "react";
+import { useContext, useEffect, useState } from "react";
 import { useForm } from "react-hook-form";
-import { Link, useParams } from "react-router-dom";
+import { useNavigate, useParams } from "react-router-dom";
+import { UserContext } from "../../context/AuthContext";
 
 export default function ProjectDetails() {
   const { id } = useParams();
+  const navigate = useNavigate();
+  const { user } = useContext(UserContext);
 
   const [project, setProject] = useState(null);
   const [loading, setLoading] = useState(true);
   const [isEditing, setIsEditing] = useState(false);
+  const [memberEmail, setMemberEmail] = useState("");
+  const [showAddMember, setShowAddMember] = useState(false);
+
   const { register, handleSubmit, reset } = useForm();
 
   useEffect(() => {
@@ -17,6 +23,8 @@ export default function ProjectDetails() {
 
   async function getOneProject() {
     try {
+      setLoading(true);
+
       const token = localStorage.getItem("token");
 
       const { data } = await axios.get(`http://localhost:3000/projects/${id}`, {
@@ -25,42 +33,132 @@ export default function ProjectDetails() {
         },
       });
 
-      console.log(data);
-
       setProject(data);
+
       reset({
         name: data.name,
         description: data.description,
       });
     } catch (error) {
       console.log(error.response?.data || error.message);
+      setProject(null);
     } finally {
       setLoading(false);
     }
   }
 
   async function updateProjectHandle(value) {
-    const token = localStorage.getItem("token");
+    try {
+      const token = localStorage.getItem("token");
 
-    const { data, status } = await axios.patch(
-      `http://localhost:3000/projects/${id}`,
-      value,
-      {
-        headers: {
-          Authorization: `Bearer ${token}`,
+      const { data, status } = await axios.patch(
+        `http://localhost:3000/projects/${id}`,
+        value,
+        {
+          headers: {
+            Authorization: `Bearer ${token}`,
+          },
         },
-      },
+      );
+
+      if (status === 200) {
+        setProject(data);
+
+        reset({
+          name: data.name,
+          description: data.description,
+        });
+
+        setIsEditing(false);
+      }
+    } catch (error) {
+      console.log(error.response?.data || error.message);
+    }
+  }
+
+  async function deleteProjectHandle() {
+    const confirmDelete = window.confirm(
+      "Are you sure you want to delete this project?",
     );
 
-    if (status === 200) {
-      setProject(data);
+    if (!confirmDelete) {
+      return;
+    }
 
-      reset({
-        name: data.name,
-        description: data.description,
-      });
+    try {
+      const token = localStorage.getItem("token");
 
-      setIsEditing(false);
+      const { status } = await axios.delete(
+        `http://localhost:3000/projects/${id}`,
+        {
+          headers: {
+            Authorization: `Bearer ${token}`,
+          },
+        },
+      );
+
+      if (status === 200 || status === 204) {
+        navigate("/dashboard");
+      }
+    } catch (error) {
+      console.log(error.response?.data || error.message);
+    }
+  }
+
+  async function addMemberHandle(event) {
+    event.preventDefault();
+
+    try {
+      const token = localStorage.getItem("token");
+
+      const { data, status } = await axios.post(
+        `http://localhost:3000/projects/${id}/members`,
+        {
+          email: memberEmail.trim().toLowerCase(),
+        },
+        {
+          headers: {
+            Authorization: `Bearer ${token}`,
+          },
+        },
+      );
+
+      if (status === 201 || status === 200) {
+        setProject(data);
+        setMemberEmail("");
+        setShowAddMember(false);
+      }
+    } catch (error) {
+      console.log(error.response?.data || error.message);
+    }
+  }
+
+  async function removeMemberHandle(userId) {
+    const confirmRemove = window.confirm(
+      "Are you sure you want to remove this member?",
+    );
+
+    if (!confirmRemove) {
+      return;
+    }
+
+    try {
+      const token = localStorage.getItem("token");
+
+      const { data, status } = await axios.delete(
+        `http://localhost:3000/projects/${id}/members/${userId}`,
+        {
+          headers: {
+            Authorization: `Bearer ${token}`,
+          },
+        },
+      );
+
+      if (status === 200) {
+        setProject(data);
+      }
+    } catch (error) {
+      console.log(error.response?.data || error.message);
     }
   }
 
@@ -94,6 +192,18 @@ export default function ProjectDetails() {
 
   const owner = typeof project.owner === "object" ? project.owner : null;
 
+  const ownerId =
+    typeof project.owner === "object" ? project.owner._id : project.owner;
+
+  const currentUserId = user?._id || user?.id;
+
+  const isOwner =
+    ownerId && currentUserId && String(ownerId) === String(currentUserId);
+
+  const isAdmin = user?.role?.toLowerCase() === "admin";
+
+  const canManageProject = isOwner || isAdmin;
+
   const members = Array.isArray(project.members) ? project.members : [];
 
   const ownerName = owner
@@ -126,23 +236,26 @@ export default function ProjectDetails() {
               </div>
             </div>
 
-            {/* Actions - Design only */}
-            <div className="flex flex-wrap gap-3">
-              <button
-                type="button"
-                onClick={() => setIsEditing(true)}
-                className="rounded-xl border border-slate-700 px-5 py-2.5 text-sm font-semibold text-slate-300 transition hover:border-violet-500 hover:text-violet-300"
-              >
-                Edit Project
-              </button>
+            {/* Owner and Admin Actions */}
+            {canManageProject && (
+              <div className="flex flex-wrap gap-3">
+                <button
+                  type="button"
+                  onClick={() => setIsEditing(true)}
+                  className="rounded-xl border border-slate-700 px-5 py-2.5 text-sm font-semibold text-slate-300 transition hover:border-violet-500 hover:text-violet-300"
+                >
+                  Edit Project
+                </button>
 
-              <button
-                type="button"
-                className="rounded-xl border border-red-500/40 px-5 py-2.5 text-sm font-semibold text-red-400 transition hover:bg-red-500/10"
-              >
-                Delete
-              </button>
-            </div>
+                <button
+                  type="button"
+                  onClick={deleteProjectHandle}
+                  className="rounded-xl border border-red-500/40 px-5 py-2.5 text-sm font-semibold text-red-400 transition hover:bg-red-500/10"
+                >
+                  Delete
+                </button>
+              </div>
+            )}
           </div>
 
           {/* Project Information */}
@@ -191,7 +304,8 @@ export default function ProjectDetails() {
           </div>
         </section>
 
-        {isEditing && (
+        {/* Edit Project Form */}
+        {canManageProject && isEditing && (
           <section className="mt-8 rounded-3xl border border-slate-800 bg-[#0c1228] p-6 sm:p-8">
             <div>
               <h2 className="text-2xl font-bold">Edit Project</h2>
@@ -275,52 +389,125 @@ export default function ProjectDetails() {
               </p>
             </div>
 
-            <button
-              type="button"
-              className="rounded-xl bg-violet-600 px-5 py-3 text-sm font-semibold transition hover:bg-violet-500"
+            {canManageProject && (
+              <button
+                type="button"
+                onClick={() => setShowAddMember(true)}
+                className="rounded-xl bg-violet-600 px-5 py-3 text-sm font-semibold transition hover:bg-violet-500"
+              >
+                + Add Member
+              </button>
+            )}
+          </div>
+
+          {/* Add Member Form */}
+          {canManageProject && showAddMember && (
+            <form
+              onSubmit={addMemberHandle}
+              className="mt-6 rounded-2xl border border-slate-800 bg-[#11172a] p-5"
             >
-              + Add Member
-            </button>
-          </div>
+              <label
+                htmlFor="memberEmail"
+                className="mb-2 block text-sm font-medium text-slate-300"
+              >
+                Member email
+              </label>
 
-          <div className="mt-6 grid gap-4 md:grid-cols-2 xl:grid-cols-3">
-            {members.map((member) => {
-              const memberObject = typeof member === "object" ? member : null;
+              <input
+                id="memberEmail"
+                type="email"
+                value={memberEmail}
+                onChange={(event) => setMemberEmail(event.target.value)}
+                placeholder="member@gmail.com"
+                required
+                className="w-full rounded-xl border border-slate-700 bg-[#0c1228] px-4 py-3 text-white outline-none focus:border-violet-500"
+              />
 
-              const memberId = memberObject?._id || member;
-
-              const memberName = memberObject
-                ? `${memberObject.firstName || ""} ${
-                    memberObject.lastName || ""
-                  }`.trim()
-                : "Project member";
-
-              return (
-                <div
-                  key={memberId}
-                  className="flex items-center justify-between rounded-2xl border border-slate-800 bg-[#11172a] p-4"
+              <div className="mt-4 flex justify-end gap-3">
+                <button
+                  type="button"
+                  onClick={() => {
+                    setMemberEmail("");
+                    setShowAddMember(false);
+                  }}
+                  className="rounded-xl border border-slate-700 px-5 py-2.5 text-sm text-slate-300"
                 >
-                  <div className="flex min-w-0 items-center gap-3">
-                    <div className="flex h-11 w-11 shrink-0 items-center justify-center rounded-full bg-violet-600/20 font-bold uppercase text-violet-300">
-                      {memberObject?.firstName?.charAt(0) || "M"}
+                  Cancel
+                </button>
+
+                <button
+                  type="submit"
+                  className="rounded-xl bg-violet-600 px-5 py-2.5 text-sm font-semibold text-white hover:bg-violet-500"
+                >
+                  Add Member
+                </button>
+              </div>
+            </form>
+          )}
+
+          {/* Members List */}
+          {members.length === 0 ? (
+            <div className="mt-6 rounded-2xl border border-dashed border-slate-700 p-8 text-center">
+              <p className="text-sm text-slate-400">
+                No members have been added to this project yet.
+              </p>
+            </div>
+          ) : (
+            <div className="mt-6 grid gap-4 md:grid-cols-2 xl:grid-cols-3">
+              {members.map((member) => {
+                const memberObject = typeof member === "object" ? member : null;
+
+                const memberId = memberObject?._id || member;
+
+                const memberName = memberObject
+                  ? `${memberObject.firstName || ""} ${
+                      memberObject.lastName || ""
+                    }`.trim()
+                  : "Project member";
+
+                const isProjectOwner = String(memberId) === String(ownerId);
+
+                return (
+                  <div
+                    key={memberId}
+                    className="flex items-center justify-between gap-3 rounded-2xl border border-slate-800 bg-[#11172a] p-4"
+                  >
+                    <div className="flex min-w-0 items-center gap-3">
+                      <div className="flex h-11 w-11 shrink-0 items-center justify-center rounded-full bg-violet-600/20 font-bold uppercase text-violet-300">
+                        {memberObject?.firstName?.charAt(0) || "M"}
+                      </div>
+
+                      <div className="min-w-0">
+                        <p className="truncate font-semibold">{memberName}</p>
+
+                        <p className="truncate text-sm text-slate-500">
+                          {memberObject?.email || "Project member"}
+                        </p>
+                      </div>
                     </div>
 
-                    <div className="min-w-0">
-                      <p className="truncate font-semibold">{memberName}</p>
-
-                      <p className="truncate text-sm text-slate-500">
-                        {memberObject?.email || "Project member"}
-                      </p>
-                    </div>
+                    {isProjectOwner ? (
+                      <span className="rounded-full bg-violet-500/10 px-3 py-1 text-xs text-violet-300">
+                        Owner
+                      </span>
+                    ) : canManageProject ? (
+                      <button
+                        type="button"
+                        onClick={() => removeMemberHandle(memberId)}
+                        className="rounded-lg border border-red-500/30 px-3 py-2 text-xs font-semibold text-red-400 transition hover:bg-red-500/10"
+                      >
+                        Remove
+                      </button>
+                    ) : (
+                      <span className="rounded-full bg-blue-500/10 px-3 py-1 text-xs text-blue-300">
+                        Member
+                      </span>
+                    )}
                   </div>
-
-                  <span className="rounded-full bg-blue-500/10 px-3 py-1 text-xs text-blue-300">
-                    Member
-                  </span>
-                </div>
-              );
-            })}
-          </div>
+                );
+              })}
+            </div>
+          )}
         </section>
 
         {/* Tasks Placeholder */}

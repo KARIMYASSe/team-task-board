@@ -1,3 +1,5 @@
+import { NavLink } from "react-router-dom";
+
 export default function SideBar() {
   return (
     <aside className="hidden w-64 border-r border-slate-800 bg-[#080d20] p-6 md:flex md:flex-col">
@@ -19,10 +21,13 @@ export default function SideBar() {
           Dashboard
         </button>
 
-        <button className="flex w-full items-center gap-3 rounded-xl px-4 py-3 text-left text-slate-400 transition hover:bg-slate-800 hover:text-white">
+        <NavLink
+          to="/projects"
+          className="flex items-center gap-4 rounded-xl px-5 py-4 text-slate-300 transition hover:bg-violet-600/20 hover:text-white"
+        >
           <span>📁</span>
-          Projects
-        </button>
+          <span>Projects</span>
+        </NavLink>
 
         <button className="flex w-full items-center gap-3 rounded-xl px-4 py-3 text-left text-slate-400 transition hover:bg-slate-800 hover:text-white">
           <span>👤</span>
