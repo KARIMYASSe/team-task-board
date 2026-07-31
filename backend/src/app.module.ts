@@ -13,7 +13,7 @@ import { TasksModule } from './tasks/tasks.module';
       isGlobal: true,
       envFilePath: './config/.env',
     }),
-    MongooseModule.forRoot('mongodb://127.0.0.1/team_management'),
+    MongooseModule.forRoot(process.env.BATABASE_URL as string),
     UsersModule,
     ProjectsModule,
     TasksModule,
